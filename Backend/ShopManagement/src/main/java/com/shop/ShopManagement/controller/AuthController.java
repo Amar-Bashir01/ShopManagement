@@ -1,46 +1,57 @@
 package com.shop.ShopManagement.controller;
 
-import com.shop.ShopManagement.entity.JwtUtil;
+import com.shop.ShopManagement.dto.LoginDTO;
+import com.shop.ShopManagement.dto.RegisterDTO;
+import com.shop.ShopManagement.dto.ResetPasswordDTO;
+import com.shop.ShopManagement.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
-    public AuthController(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    // constructor injection (no Lombok)
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
+    // ---------------- Register ----------------
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterDTO dto) {
+        String message = authService.register(dto);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    // ---------------- Login ----------------
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
-        System.out.println(">>> Username: " + request.getUsername());
-        System.out.println(">>> Password: " + request.getPassword());
-
-        if ("admin".equals(request.getUsername()) && "password".equals(request.getPassword())) {
-            String token = jwtUtil.generateToken(request.getUsername());
-            return ResponseEntity.ok(token);
-        } else {
-            return ResponseEntity.status(401).body("Invalid username or password");
-        }
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginDTO dto) {
+        String token = authService.login(dto);
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
+    // ---------------- Forgot Password ----------------
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestParam String email) {
+        String message = authService.forgotPassword(email);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
 
+    // ---------------- Reset Password ----------------
+//    @PostMapping("/reset-password")
+//    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody ResetPasswordDTO dto) {
+//        String message = authService.resetPassword(dto);
+//        return ResponseEntity.ok(Map.of("message", message));
+//    }
+// ---------------- Test Endpoint (JWT Protected) ----------------
+//    @GetMapping("/me")
+//    public ResponseEntity<Map<String, String>> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+//        String token = authHeader.replace("Bearer ", "");
+//        String username = authService.extractUsernameFromToken(token);
+//        return ResponseEntity.ok(Map.of("username", username));
+//    }
 }
-
-class AuthRequest {
-    private String username;
-    private String password;
-
-    // ✅ Add getters and setters here
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-}
-
