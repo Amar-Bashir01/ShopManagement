@@ -1,18 +1,22 @@
 import { NgModule, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { BrowserModule, provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';   // 👈 for ngModel
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
-import { Test } from './components/test/test';
+import { Login } from './components/login/login';
 
 @NgModule({
   declarations: [
     App,
-    Test
+    Login
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule     
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

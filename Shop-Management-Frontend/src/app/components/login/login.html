@@ -1,0 +1,56 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 *ngIf="currentTab === 'login'">Welcome</h2>
+    <h2 *ngIf="currentTab === 'register'">Create Account ✨</h2>
+    <h2 *ngIf="currentTab === 'forgot'">Forgot Password 🔑</h2>
+    <h2 *ngIf="currentTab === 'reset'">Reset Password 🔒</h2>
+
+    <!-- Login -->
+    <form *ngIf="currentTab === 'login'" (ngSubmit)="onLogin()">
+      <input type="email" placeholder="Email" [(ngModel)]="email" name="email" required />
+      <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
+      <button type="submit">Login</button>
+      <p class="switch-text">
+        Don’t have an account?
+        <span (click)="switchTab('register')">Register</span>
+      </p>
+      <p class="switch-text">
+        Forgot password?
+        <span (click)="switchTab('forgot')">Click here</span>
+      </p>
+    </form>
+
+    <!-- Register -->
+    <form *ngIf="currentTab === 'register'" (ngSubmit)="onRegister()">
+      <input type="text" placeholder="Name" [(ngModel)]="name" name="name" required />
+      <input type="email" placeholder="Email" [(ngModel)]="email" name="email" required />
+      <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
+      <button type="submit">Register</button>
+      <p class="switch-text">
+        Already have an account?
+        <span (click)="switchTab('login')">Login</span>
+      </p>
+    </form>
+
+    <!-- Forgot Password -->
+    <form *ngIf="currentTab === 'forgot'" (ngSubmit)="onForgotPassword()">
+      <input type="email" placeholder="Enter your email" [(ngModel)]="email" name="email" required />
+      <button type="submit">Send OTP</button>
+      <p class="switch-text">
+        Back to
+        <span (click)="switchTab('login')">Login</span>
+      </p>
+    </form>
+
+    <!-- Reset Password -->
+    <form *ngIf="currentTab === 'reset'" (ngSubmit)="onResetPassword()">
+      <input type="text" placeholder="OTP" [(ngModel)]="otp" name="otp" required />
+      <input type="password" placeholder="New Password" [(ngModel)]="newPassword" name="newPassword" required />
+      <button type="submit">Reset Password</button>
+      <p class="switch-text">
+        Back to
+        <span (click)="switchTab('login')">Login</span>
+      </p>
+    </form>
+  </div>
+</div>
