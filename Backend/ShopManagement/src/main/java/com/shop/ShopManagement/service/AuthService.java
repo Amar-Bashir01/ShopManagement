@@ -6,6 +6,8 @@ import com.shop.ShopManagement.dto.ResetPasswordDTO;
 import com.shop.ShopManagement.entity.JwtUtil;
 import com.shop.ShopManagement.entity.User;
 import com.shop.ShopManagement.repository.UserRepository;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +17,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
+    @Getter
+    private static class OtpDetails {
+        private final String otp;
+        private final long expiryTime;
+        @Setter
+        private boolean verified;
+
+        public OtpDetails(String otp, long expiryTime) {
+            this.otp = otp;
+            this.expiryTime = expiryTime;
+            this.verified = false;
+        }
+    }
+
+    private final ConcurrentHashMap<String, OtpDetails> otpStorage = new ConcurrentHashMap<>();
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
-
-    // in-memory OTP store (better use Redis or DB in real prod)
-    private final ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();
 
     public AuthService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtUtil jwtUtil, EmailService emailService) {
         this.userRepository = userRepository;
@@ -78,26 +92,39 @@ public class AuthService {
 
     // ---------------- Forgot Password (send OTP) ----------------
     public String forgotPassword(String email) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("User not found"));
 
         // generate 6-digit OTP
-        String otp = String.valueOf(new Random().nextInt(900000) + 100000);
-        otpStorage.put(email, otp);
+        String otp = String.format("%06d", new Random().nextInt(100000));
+        long expiry = System.currentTimeMillis() + (2*60*1000);
+        otpStorage.put(email, new OtpDetails(otp, expiry));
 
         // send OTP via email
         emailService.sendEmail(email, "Password Reset OTP", "Your OTP is: " + otp);
 
         return "OTP sent to your email.";
     }
+    //verify otp
+    public String verifyOtp(String email, String otp){
+        OtpDetails details = otpStorage.get(email);
+        if(details == null)
+            throw new RuntimeException("No OTP found, please request again");
+        if (System.currentTimeMillis() > details.getExpiryTime()) {
+            otpStorage.remove(email);
+            throw new RuntimeException("OTP expired. Request a new one.");
+        }
+        if (!details.getOtp().equals(otp))
+            throw new RuntimeException("Invalid OTP.");
 
+        details.setVerified(true);//it got verified
+        return "OTP verified successfully.";
+    }
     // ---------------- Reset Password ----------------
     public String resetPassword(ResetPasswordDTO dto) {
-        String savedOtp = otpStorage.get(dto.getEmail());
-        if (savedOtp == null || !savedOtp.equals(dto.getOtp())) {
-            throw new RuntimeException("Invalid or expired OTP");
+        OtpDetails details = otpStorage.get(dto.getEmail());
+        if (details == null || !details.isVerified()) {
+            throw new RuntimeException("OTP not verified or expired");
         }
 
         User user = userRepository.findByEmail(dto.getEmail())

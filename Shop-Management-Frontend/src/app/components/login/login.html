@@ -3,6 +3,7 @@
     <h2 *ngIf="currentTab === 'login'">Welcome</h2>
     <h2 *ngIf="currentTab === 'register'">Create Account ✨</h2>
     <h2 *ngIf="currentTab === 'forgot'">Forgot Password 🔑</h2>
+    <h2 *ngIf="currentTab === 'verify'">Verify OTP 📩</h2>
     <h2 *ngIf="currentTab === 'reset'">Reset Password 🔒</h2>
 
     <!-- Login -->
@@ -36,12 +37,15 @@
     <form *ngIf="currentTab === 'forgot'" (ngSubmit)="onForgotPassword()">
       <input type="email" placeholder="Enter your email" [(ngModel)]="email" name="email" required />
       <button type="submit">Send OTP</button>
+    </form>
+    <!--verify otp-->
+    <form *ngIf="currentTab === 'verify'" (ngSubmit)="onVerifyOtp()">
+      <input type="text" placeholder="Enter OTP" [(ngModel)]="otp" name="otp" required />
+      <button type="submit">Verify OTP</button>
       <p class="switch-text">
-        Back to
-        <span (click)="switchTab('login')">Login</span>
+        Back to <span (click)="switchTab('login')">Login</span>
       </p>
     </form>
-
     <!-- Reset Password -->
     <form *ngIf="currentTab === 'reset'" (ngSubmit)="onResetPassword()">
       <input type="text" placeholder="OTP" [(ngModel)]="otp" name="otp" required />

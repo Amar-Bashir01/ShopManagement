@@ -68,12 +68,25 @@ onRegister() {
         next: (res) => {
           this.message = res.message;
           alert('OTP sent to your email');
-          this.switchTab('reset');
+          this.switchTab('verify');
         },
         error: () => alert('Failed to send OTP')
       });
   }
-
+//verify Otp
+onVerifyOtp() {
+  if (!this.email || !this.otp) {
+    alert('Enter email and OTP');
+    return;
+  }
+  this.authService.verifyOtp(this.email, this.otp).subscribe({
+    next: () => {
+      alert('OTP verified successfully!');
+      this.switchTab('reset');
+    },
+    error: () => alert('Invalid or expired OTP')
+  });
+}
   // Reset Password
   onResetPassword() {
     if (!this.email || !this.otp || !this.newPassword) {
@@ -92,6 +105,7 @@ onRegister() {
 
   // Switch tabs
   switchTab(tab: string) {
+    console.log('Switching tab to:', tab);
     this.currentTab = tab;
     this.message = '';
     this.password = '';

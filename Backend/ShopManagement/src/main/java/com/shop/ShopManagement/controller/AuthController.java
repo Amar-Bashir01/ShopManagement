@@ -40,13 +40,17 @@ public class AuthController {
         String message = authService.forgotPassword(email);
         return ResponseEntity.ok(Map.of("message", message));
     }
-
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Map<String, String>> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        String message = authService.verifyOtp(email, otp);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
     // ---------------- Reset Password ----------------
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody ResetPasswordDTO dto) {
-//        String message = authService.resetPassword(dto);
-//        return ResponseEntity.ok(Map.of("message", message));
-//    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        String message = authService.resetPassword(dto);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
 // ---------------- Test Endpoint (JWT Protected) ----------------
 //    @GetMapping("/me")
 //    public ResponseEntity<Map<String, String>> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
