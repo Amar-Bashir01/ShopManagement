@@ -6,6 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { Login } from './components/login/login';
+import {MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -16,6 +17,7 @@ import { Login } from './components/login/login';
     BrowserModule,
     AppRoutingModule,
     FormsModule,
+    MatSnackBarModule,
     HttpClientModule     
   ],
   providers: [

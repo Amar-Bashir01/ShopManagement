@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../Services/auth-service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,7 @@ export class Login {
   message: string = '';
   username: any;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router,private snackBar: MatSnackBar,private cdr: ChangeDetectorRef) {}
 
   // Login
   onLogin() {
@@ -30,7 +31,7 @@ export class Login {
       .subscribe({
         next: (res) => {
           localStorage.setItem('token', res.token);
-          alert('Login successful!');
+           this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
           this.router.navigate(['/dashboard']);
         },
         error: () => alert('Invalid credentials')
@@ -40,7 +41,7 @@ export class Login {
   // Register
 onRegister() {
   if (!this.name || !this.email || !this.password) {
-    alert('All fields required');
+     this.snackBar.open('All fields manatory!', 'Close', { duration: 3000 });
     return;
   }
 
@@ -50,25 +51,27 @@ onRegister() {
     password: this.password
   }).subscribe({
     next: () => {
-      alert('User registered successfully!');
+      this.snackBar.open('User registered successfully!','Close',{duration:3000});
       this.switchTab('login');
+      this.cdr.detectChanges();
     },
-    error: () => alert('Registration failed')
+    error: () => this.snackBar.open('Registration failed','Close',{duration:3000})
   });
 }
 
   // Forgot Password
   onForgotPassword() {
     if (!this.email) {
-      alert('Email required');
+      this.snackBar.open('Email required','Close',{duration:3000});
       return;
     }
     this.authService.forgotPassword(this.email)
       .subscribe({
         next: (res) => {
           this.message = res.message;
-          alert('OTP sent to your email');
           this.switchTab('verify');
+          this.snackBar.open('OTP sent to your email','Close', {duration:3000});
+          this.cdr.detectChanges();
         },
         error: () => alert('Failed to send OTP')
       });
@@ -76,13 +79,14 @@ onRegister() {
 //verify Otp
 onVerifyOtp() {
   if (!this.email || !this.otp) {
-    alert('Enter email and OTP');
+    this.snackBar.open('Enter email and OTP','Close',{duration:3000});
     return;
   }
   this.authService.verifyOtp(this.email, this.otp).subscribe({
     next: () => {
-      alert('OTP verified successfully!');
       this.switchTab('reset');
+      this.snackBar.open('OTP verified successfully!','Close',{duration:3000});
+      this.cdr.detectChanges();
     },
     error: () => alert('Invalid or expired OTP')
   });
@@ -90,22 +94,22 @@ onVerifyOtp() {
   // Reset Password
   onResetPassword() {
     if (!this.email || !this.otp || !this.newPassword) {
-      alert('All fields required');
+      this.snackBar.open('All fields required','Close',{duration:3000});
       return;
     }
     this.authService.resetPassword({ email: this.email, otp: this.otp, newPassword: this.newPassword })
       .subscribe({
         next: () => {
-          alert('Password reset successful!');
           this.switchTab('login');
+          this.snackBar.open('Password reset successful!','Close',{duration:3000});
+          this.cdr.detectChanges();
         },
         error: () => alert('Reset failed')
       });
   }
 
-  // Switch tabs
   switchTab(tab: string) {
-    console.log('Switching tab to:', tab);
+    console.log('Switch tab:', tab);
     this.currentTab = tab;
     this.message = '';
     this.password = '';
@@ -113,3 +117,9 @@ onVerifyOtp() {
     this.otp = '';
   }
 }
+
+// Problem : whereever 'alert' and 'switch tab' are together, the alert being synchronous operation blocks 'switch tab' from executing.
+//Solutions: 1. Add timeout for alerts., 2. Use toasts instead of alerts.
+
+//Problem : though using toast with timer helps log the switch tab, it is suppressed by the toast message and change of route goes undetected.
+//Solution : use cdr(changeDetectOrRef) -> this.cdr.detectChanges()
